@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../services/api";
+import { supabase } from "../lib/supabase";
 
 const columns = [
   { key: "pendente", title: "Pendentes" },
@@ -24,18 +25,30 @@ export default function KitchenPage() {
   useEffect(() => {
     loadOrders();
 
-    const interval = setInterval(() => {
-      loadOrders();
-    }, 5000);
+    const channel = supabase
+      .channel("kitchen-orders-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        async () => {
+          await loadOrders();
+        },
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function updateStatus(orderId, status) {
     try {
       setLoading(true);
       await api.patch(`/orders/${orderId}/status`, { status });
-      await loadOrders();
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       alert("Erro ao atualizar status");
@@ -57,7 +70,7 @@ export default function KitchenPage() {
       <div style={styles.header}>
         <div>
           <h1 style={{ margin: 0 }}>Cozinha</h1>
-          <p style={{ marginTop: 8 }}>Acompanhe e mova os pedidos por status</p>
+          <p style={{ marginTop: 8 }}>Pedidos atualizando em tempo real</p>
         </div>
 
         <button onClick={loadOrders} style={styles.refreshButton}>
@@ -90,9 +103,10 @@ export default function KitchenPage() {
                         <span>
                           {item.quantity}x {item.products?.name || "Produto"}
                         </span>
-                        {item.notes && (
+
+                        {item.notes ? (
                           <small style={styles.note}>Obs: {item.notes}</small>
-                        )}
+                        ) : null}
                       </div>
                     ))}
                   </div>

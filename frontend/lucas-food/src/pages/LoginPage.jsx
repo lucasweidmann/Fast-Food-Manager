@@ -6,9 +6,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
 
-  const [mode, setMode] = useState("login"); // login | register
+  const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
-
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,21 +17,34 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      password: form.password,
+    };
+
+    if (!payload.email || !payload.password) {
+      alert("Preencha email e senha");
+      return;
+    }
+
     try {
       setLoading(true);
 
       if (mode === "register") {
         const result = await signUp({
-          name: form.name,
-          email: form.email,
-          password: form.password,
+          name: payload.name,
+          email: payload.email,
+          password: payload.password,
         });
 
         if (result?.session) {
-          alert("Conta criada e login realizado com sucesso");
+          alert("Conta criada com sucesso");
           navigate("/pdv");
         } else {
-          alert("Conta criada. Verifique seu email para confirmar o cadastro.");
+          alert(
+            "Conta criada. Se a confirmação de email estiver ativa, confirme seu email antes de entrar.",
+          );
           setMode("login");
         }
 
@@ -40,13 +52,21 @@ export default function LoginPage() {
       }
 
       await signIn({
-        email: form.email,
-        password: form.password,
+        email: payload.email,
+        password: payload.password,
       });
 
       navigate("/pdv");
     } catch (error) {
       console.error(error);
+
+      if (error.message?.includes("rate limit")) {
+        alert(
+          "Muitas tentativas de envio de email. Espere um pouco ou desative a confirmação de email no Supabase para testar.",
+        );
+        return;
+      }
+
       alert(error.message || "Erro de autenticação");
     } finally {
       setLoading(false);
@@ -95,10 +115,10 @@ export default function LoginPage() {
 
         <button
           type="button"
+          style={styles.linkButton}
           onClick={() =>
             setMode((prev) => (prev === "login" ? "register" : "login"))
           }
-          style={styles.linkButton}
         >
           {mode === "login"
             ? "Não tem conta? Cadastre-se"
