@@ -71,63 +71,92 @@ export default function KitchenPage() {
   }, [orders]);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
-        <div>
-          <h1 style={{ margin: 0 }}>Cozinha</h1>
-          <p style={{ marginTop: 8 }}>Pedidos atualizando em tempo real</p>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-title">
+          <h1>Cozinha</h1>
+          <p>Pedidos atualizando em tempo real</p>
         </div>
 
-        <button onClick={loadOrders} style={styles.refreshButton}>
+        <button onClick={loadOrders} className="btn btn-ghost">
           Atualizar
         </button>
       </div>
 
       {loadingPage ? (
-        <div style={styles.emptyPage}>Carregando...</div>
+        <div className="card card-muted">Carregando...</div>
       ) : (
-        <div style={styles.board}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: 16,
+          }}
+        >
           {columns.map((column) => (
-            <div key={column.key} style={styles.column}>
-              <h2 style={styles.columnTitle}>
+            <div key={column.key} className="card">
+              <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 16 }}>
                 {column.title} ({groupedOrders[column.key].length})
               </h2>
 
-              <div style={styles.cards}>
+              <div className="card-list">
                 {groupedOrders[column.key].length === 0 && (
-                  <div style={styles.emptyCard}>Nenhum pedido</div>
+                  <div className="card-empty">Nenhum pedido</div>
                 )}
 
                 {groupedOrders[column.key].map((order) => (
-                  <div key={order.id} style={styles.card}>
-                    <div style={styles.cardHeader}>
+                  <div key={order.id} className="card" style={{ padding: 14 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        marginBottom: 10,
+                      }}
+                    >
                       <strong>Pedido #{order.id}</strong>
                       <span>{order.customer_name || "Cliente balcão"}</span>
                     </div>
 
-                    <div style={styles.itemsList}>
+                    <div className="card-items" style={{ borderTop: "none" }}>
                       {order.order_items?.map((item) => (
-                        <div key={item.id} style={styles.itemRow}>
+                        <div
+                          key={item.id}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                          }}
+                        >
                           <span>
                             {item.quantity}x {item.products?.name || "Produto"}
                           </span>
 
                           {item.notes ? (
-                            <small style={styles.note}>Obs: {item.notes}</small>
+                            <small className="card-item-note">
+                              Obs: {item.notes}
+                            </small>
                           ) : null}
                         </div>
                       ))}
                     </div>
 
-                    <div style={styles.total}>
+                    <div
+                      style={{
+                        fontWeight: "bold",
+                        marginTop: 10,
+                        marginBottom: 10,
+                      }}
+                    >
                       Total: R$ {Number(order.total).toFixed(2)}
                     </div>
 
-                    <div style={styles.actions}>
+                    <div style={{ display: "flex" }}>
                       {order.status === "pendente" && (
                         <button
                           disabled={loadingAction}
-                          style={styles.actionButton}
+                          className="btn btn-primary"
+                          style={{ width: "100%" }}
                           onClick={() => updateStatus(order.id, "preparando")}
                         >
                           Iniciar preparo
@@ -137,7 +166,8 @@ export default function KitchenPage() {
                       {order.status === "preparando" && (
                         <button
                           disabled={loadingAction}
-                          style={styles.actionButton}
+                          className="btn btn-primary"
+                          style={{ width: "100%" }}
                           onClick={() => updateStatus(order.id, "pronto")}
                         >
                           Marcar como pronto
@@ -147,7 +177,8 @@ export default function KitchenPage() {
                       {order.status === "pronto" && (
                         <button
                           disabled={loadingAction}
-                          style={styles.actionButton}
+                          className="btn btn-primary"
+                          style={{ width: "100%" }}
                           onClick={() => updateStatus(order.id, "entregue")}
                         >
                           Entregue
@@ -164,105 +195,3 @@ export default function KitchenPage() {
     </div>
   );
 }
-
-const styles = {
-  page: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  header: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  refreshButton: {
-    border: "none",
-    padding: "10px 16px",
-    borderRadius: 10,
-    cursor: "pointer",
-    background: "#111827",
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  board: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: 16,
-  },
-  column: {
-    background: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 500,
-  },
-  columnTitle: {
-    marginTop: 0,
-    marginBottom: 16,
-  },
-  cards: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  emptyCard: {
-    padding: 16,
-    border: "1px dashed #ccc",
-    borderRadius: 10,
-    textAlign: "center",
-  },
-  emptyPage: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    textAlign: "center",
-  },
-  card: {
-    border: "1px solid #e5e7eb",
-    borderRadius: 12,
-    padding: 14,
-    background: "#fafafa",
-  },
-  cardHeader: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    marginBottom: 10,
-  },
-  itemsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    marginBottom: 12,
-  },
-  itemRow: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-  },
-  note: {
-    opacity: 0.8,
-  },
-  total: {
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  actions: {
-    display: "flex",
-  },
-  actionButton: {
-    width: "100%",
-    border: "none",
-    padding: "10px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "#111827",
-    color: "#fff",
-  },
-};

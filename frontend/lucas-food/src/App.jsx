@@ -1,4 +1,4 @@
-import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import ProductsPage from "./pages/ProductsPage";
 import OrdersPage from "./pages/OrdersPage";
 import PDVPage from "./pages/PDVPage";
@@ -19,53 +19,57 @@ function AppLayout() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f4f5" }}>
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: 20,
-        }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 20,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <nav
-            style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <Link to="/pdv">PDV</Link>
-            <Link to="/orders">Meus pedidos</Link>
-            <Link to="/products">Produtos</Link>
-            <Link to="/kitchen">Cozinha</Link>
-          </nav>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <span>{user?.email}</span>
-            <button onClick={handleLogout}>Sair</button>
+    <div className="layout">
+      <aside className="sidebar">
+        <div className="brand">
+          <img src="/logo-lf.png" alt="Lucas Food" />
+          <div className="brand-title">
+            <strong>Lucas Food</strong>
+            <span>PDV & Operação</span>
           </div>
         </div>
 
+        <nav className="nav">
+          <NavLink to="/pdv" end>
+            <span>PDV</span>
+            <span className="nav-pill">Venda</span>
+          </NavLink>
+          <NavLink to="/orders">
+            <span>Meus pedidos</span>
+            <span className="nav-pill">Histórico</span>
+          </NavLink>
+          <NavLink to="/products">
+            <span>Produtos</span>
+            <span className="nav-pill">Catálogo</span>
+          </NavLink>
+          <NavLink to="/kitchen">
+            <span>Cozinha</span>
+            <span className="nav-pill">Kanban</span>
+          </NavLink>
+        </nav>
+      </aside>
+
+      <main className="main">
+        <header className="topbar">
+          <div className="topbar-left">
+            <strong>Painel</strong>
+            <span className="muted">Operação em tempo real</span>
+          </div>
+
+          <div className="topbar-right">
+            <div className="user-chip">
+              <span className="avatar">
+                {user?.email?.charAt(0)?.toUpperCase() || "U"}
+              </span>
+              <span>{user?.email}</span>
+            </div>
+            <button className="btn btn-danger" onClick={handleLogout}>
+              Sair
+            </button>
+          </div>
+        </header>
+
+        <div className="container">
         <Routes>
           <Route path="/pdv" element={<PDVPage />} />
           <Route path="/orders" element={<OrdersPage />} />
@@ -73,7 +77,8 @@ function AppLayout() {
           <Route path="/kitchen" element={<KitchenPage />} />
           <Route path="*" element={<Navigate to="/pdv" replace />} />
         </Routes>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

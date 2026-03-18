@@ -74,96 +74,88 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleSubmit} style={styles.card}>
-        <h1>Lucas Food</h1>
-        <p>{mode === "login" ? "Entrar no sistema" : "Criar conta"}</p>
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="auth-brand">
+          <div className="auth-logo">
+            <img src="/logo-lf.png" alt="Lucas Food" className="auth-logo-img" />
+          </div>
+          <div className="auth-title">
+            <h1>Lucas Food</h1>
+            <p>
+              {mode === "login"
+                ? "Entre no painel para gerenciar pedidos, cozinha e PDV."
+                : "Crie sua conta para começar a vender com o Lucas Food."}
+            </p>
+          </div>
+        </div>
 
-        {mode === "register" && (
-          <input
-            type="text"
-            placeholder="Nome"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            style={styles.input}
-          />
-        )}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {mode === "register" && (
+            <div className="auth-field">
+              <label htmlFor="name">Nome</label>
+              <input
+                id="name"
+                type="text"
+                placeholder="Como devemos te chamar?"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+          )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          style={styles.input}
-        />
+          <div className="auth-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="voce@restaurante.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          style={styles.input}
-        />
+          <div className="auth-field">
+            <label htmlFor="password">Senha</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+          </div>
 
-        <button type="submit" style={styles.button} disabled={loading}>
-          {loading
-            ? "Carregando..."
-            : mode === "login"
-              ? "Entrar"
-              : "Cadastrar"}
-        </button>
+          <button
+            type="submit"
+            className="btn btn-primary auth-submit"
+            disabled={loading}
+          >
+            {loading
+              ? "Carregando..."
+              : mode === "login"
+                ? "Entrar no painel"
+                : "Criar conta"}
+          </button>
 
-        <button
-          type="button"
-          style={styles.linkButton}
-          onClick={() =>
-            setMode((prev) => (prev === "login" ? "register" : "login"))
-          }
-        >
-          {mode === "login"
-            ? "Não tem conta? Cadastre-se"
-            : "Já tem conta? Entrar"}
-        </button>
-      </form>
+          <button
+            type="button"
+            className="auth-toggle"
+            onClick={() =>
+              setMode((prev) => (prev === "login" ? "register" : "login"))
+            }
+          >
+            {mode === "login"
+              ? "Não tem conta? Cadastre-se"
+              : "Já tem conta? Entrar"}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <span>Dica para testes rápidos:</span>
+          <span>desative a confirmação de email no Supabase.</span>
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#f4f4f5",
-    padding: 20,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 420,
-    background: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  input: {
-    padding: 12,
-    borderRadius: 10,
-    border: "1px solid #d4d4d8",
-  },
-  button: {
-    padding: 12,
-    border: "none",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-  linkButton: {
-    padding: 10,
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-  },
-};

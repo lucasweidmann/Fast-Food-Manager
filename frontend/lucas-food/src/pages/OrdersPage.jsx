@@ -77,60 +77,56 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
-        <div>
-          <h1 style={{ margin: 0 }}>Meus pedidos</h1>
-          <p style={{ marginTop: 8, opacity: 0.7 }}>
-            Acompanhe os pedidos da sua conta
-          </p>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-title">
+          <h1>Meus pedidos</h1>
+          <p>Acompanhe os pedidos da sua conta</p>
         </div>
 
-        <button onClick={loadOrders} style={styles.refreshButton}>
+        <button onClick={loadOrders} className="btn btn-ghost">
           Atualizar
         </button>
       </div>
 
       {loading ? (
-        <div style={styles.emptyCard}>Carregando...</div>
+        <div className="card card-muted">Carregando...</div>
       ) : orders.length === 0 ? (
-        <div style={styles.emptyCard}>Você ainda não tem pedidos</div>
+        <div className="card card-muted">Você ainda não tem pedidos</div>
       ) : (
-        <div style={styles.list}>
+        <div className="card-list">
           {orders.map((order) => (
-            <div key={order.id} style={styles.card}>
-              <div style={styles.cardTop}>
+            <div key={order.id} className="card">
+              <div className="card-row">
                 <div>
                   <h3 style={{ margin: 0 }}>Pedido #{order.id}</h3>
-                  <p style={{ margin: "6px 0 0 0", opacity: 0.75 }}>
+                  <p className="card-item-note">
                     Cliente: {order.customer_name || "Cliente"}
                   </p>
                 </div>
 
                 <span
-                  style={{
-                    ...styles.badge,
-                    backgroundColor: getStatusColor(order.status),
-                  }}
+                  className={`badge badge-pill badge-status`}
+                  style={{ backgroundColor: getStatusColor(order.status) }}
                 >
                   {getStatusLabel(order.status)}
                 </span>
               </div>
 
-              <div style={styles.meta}>
+              <div className="meta-row">
                 <span>Pagamento: {order.payment_method || "-"}</span>
                 <strong>Total: R$ {Number(order.total).toFixed(2)}</strong>
               </div>
 
-              <div style={styles.items}>
+              <div className="card-items">
                 {order.order_items?.map((item) => (
-                  <div key={item.id} style={styles.item}>
+                  <div key={item.id} className="card-item">
                     <div>
                       <strong>
                         {item.quantity}x {item.products?.name || "Produto"}
                       </strong>
                       {item.notes ? (
-                        <p style={styles.note}>Obs: {item.notes}</p>
+                        <p className="card-item-note">Obs: {item.notes}</p>
                       ) : null}
                     </div>
 
@@ -145,87 +141,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-const styles = {
-  page: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  header: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  refreshButton: {
-    border: "none",
-    background: "#111827",
-    color: "#fff",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  card: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 18,
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  cardTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    alignItems: "flex-start",
-    flexWrap: "wrap",
-  },
-  badge: {
-    color: "#fff",
-    borderRadius: 999,
-    padding: "8px 12px",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  meta: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  items: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  item: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    padding: 12,
-    border: "1px solid #e5e7eb",
-    borderRadius: 12,
-    background: "#fafafa",
-  },
-  note: {
-    margin: "6px 0 0 0",
-    opacity: 0.75,
-  },
-  emptyCard: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    textAlign: "center",
-  },
-};

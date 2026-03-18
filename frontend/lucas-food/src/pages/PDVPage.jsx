@@ -4,6 +4,7 @@ import { api } from "../services/api";
 export default function PDVPage() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [query, setQuery] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [loading, setLoading] = useState(false);
@@ -98,9 +99,25 @@ export default function PDVPage() {
     );
   }
 
-  const total = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.subtotal, 0);
-  }, [cart]);
+  const total = useMemo(
+    () => cart.reduce((sum, item) => sum + item.subtotal, 0),
+    [cart],
+  );
+
+  const totalItems = useMemo(
+    () => cart.reduce((sum, item) => sum + item.quantity, 0),
+    [cart],
+  );
+
+  const filteredProducts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => {
+      const name = String(p.name || "").toLowerCase();
+      const desc = String(p.description || "").toLowerCase();
+      return name.includes(q) || desc.includes(q);
+    });
+  }, [products, query]);
 
   async function finalizeOrder() {
     if (cart.length === 0) {
@@ -136,178 +153,171 @@ export default function PDVPage() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.leftPanel}>
-        <h1 style={{ marginTop: 0 }}>PDV - Lucas Food</h1>
-        <p>Selecione os produtos</p>
+    <div className="grid grid-2">
+      <section className="surface surface-flat">
+        <div className="section-head">
+          <div>
+            <h1>PDV</h1>
+            <div className="section-sub">
+              Busque, selecione e adicione produtos ao pedido.
+            </div>
+          </div>
 
-        <div style={styles.productGrid}>
-          {products.map((product) => (
+          <div className="kpis">
+            <span className="kpi">{products.length} produtos</span>
+            <span className="kpi">{totalItems} itens no carrinho</span>
+          </div>
+        </div>
+
+        <div style={{ padding: "12px 16px 0" }}>
+          <div className="field">
+            <span className="label">Buscar produtos</span>
+            <input
+              className="input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Digite nome ou descrição…"
+            />
+          </div>
+        </div>
+
+        <div className="product-grid">
+          {filteredProducts.map((product) => (
             <button
               key={product.id}
-              style={styles.productCard}
+              className="product-tile"
+              type="button"
               onClick={() => addToCart(product)}
             >
               <strong>{product.name}</strong>
               <span>{product.description}</span>
-              <span>R$ {Number(product.price).toFixed(2)}</span>
+              <em>R$ {Number(product.price).toFixed(2)}</em>
             </button>
           ))}
-        </div>
-      </div>
 
-      <div style={styles.rightPanel}>
-        <h2 style={{ marginTop: 0 }}>Carrinho</h2>
-
-        <input
-          type="text"
-          placeholder="Nome do cliente"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          style={styles.input}
-        />
-
-        <select
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
-          style={styles.input}
-        >
-          <option value="pix">Pix</option>
-          <option value="dinheiro">Dinheiro</option>
-          <option value="cartao">Cartão</option>
-        </select>
-
-        <div style={styles.cartList}>
-          {cart.length === 0 && <p>Nenhum item no carrinho</p>}
-
-          {cart.map((item) => (
-            <div key={item.product_id} style={styles.cartItem}>
-              <div>
-                <strong>{item.name}</strong>
-                <p>
-                  {item.quantity} x R$ {item.unit_price.toFixed(2)}
-                </p>
-                <p>Subtotal: R$ {item.subtotal.toFixed(2)}</p>
-              </div>
-
-              <div style={styles.cartActions}>
-                <button onClick={() => decreaseQuantity(item.product_id)}>
-                  -
-                </button>
-                <span>{item.quantity}</span>
-                <button onClick={() => increaseQuantity(item.product_id)}>
-                  +
-                </button>
-                <button onClick={() => removeItem(item.product_id)}>
-                  Remover
-                </button>
-              </div>
-
-              <input
-                type="text"
-                placeholder="Observação"
-                value={item.notes}
-                onChange={(e) => updateNotes(item.product_id, e.target.value)}
-                style={styles.notesInput}
-              />
+          {filteredProducts.length === 0 && (
+            <div className="empty">
+              Nenhum produto encontrado para a busca. Tente outro termo.
             </div>
-          ))}
+          )}
+        </div>
+      </section>
+
+      <section className="surface surface-flat">
+        <div className="section-head">
+          <div>
+            <h2>Carrinho</h2>
+            <div className="section-sub">Revise o pedido antes de finalizar.</div>
+          </div>
+
+          <div className="kpis">
+            <span className="kpi">Pagamento: {paymentMethod}</span>
+            <span className="kpi">Total: R$ {total.toFixed(2)}</span>
+          </div>
         </div>
 
-        <div style={styles.footer}>
-          <h3>Total: R$ {total.toFixed(2)}</h3>
+        <div className="cart">
+          <div className="field">
+            <span className="label">Cliente</span>
+            <input
+              className="input"
+              type="text"
+              placeholder="Nome do cliente"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+            />
+          </div>
+
+          <div className="field" style={{ marginTop: 10 }}>
+            <span className="label">Pagamento</span>
+            <select
+              className="select"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <option value="pix">Pix</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao">Cartão</option>
+            </select>
+          </div>
+
+          <div className="divider" />
+
+          {cart.length === 0 ? (
+            <div className="muted" style={{ fontSize: 13 }}>
+              Nenhum item no carrinho.
+            </div>
+          ) : (
+            cart.map((item) => (
+              <div key={item.product_id} className="cart-item">
+                <div className="cart-row">
+                  <div>
+                    <strong>{item.name}</strong>
+                    <small>
+                      {item.quantity} x R$ {item.unit_price.toFixed(2)} • Subtotal
+                      {" "}R$ {item.subtotal.toFixed(2)}
+                    </small>
+                  </div>
+
+                  <div className="qty">
+                    <button
+                      type="button"
+                      onClick={() => decreaseQuantity(item.product_id)}
+                      aria-label="Diminuir"
+                    >
+                      -
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => increaseQuantity(item.product_id)}
+                      aria-label="Aumentar"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="cart-actions">
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => removeItem(item.product_id)}
+                  >
+                    Remover
+                  </button>
+                  <span className="pill">Obs:</span>
+                  <input
+                    className="input"
+                    style={{ flex: 1, minWidth: 160 }}
+                    type="text"
+                    placeholder="ex: sem cebola"
+                    value={item.notes}
+                    onChange={(e) => updateNotes(item.product_id, e.target.value)}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="total">
+          <div>
+            <div className="muted" style={{ fontSize: 12 }}>
+              Total do pedido
+            </div>
+            <strong>R$ {total.toFixed(2)}</strong>
+          </div>
           <button
+            type="button"
             onClick={finalizeOrder}
             disabled={loading}
-            style={styles.finalizeButton}
+            className="btn btn-primary"
           >
-            {loading ? "Finalizando..." : "Finalizar Pedido"}
+            {loading ? "Finalizando..." : "Finalizar pedido"}
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: "grid",
-    gridTemplateColumns: "2fr 1fr",
-    gap: 20,
-  },
-  leftPanel: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 16,
-  },
-  rightPanel: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 16,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 600,
-  },
-  productGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-    gap: 12,
-    marginTop: 20,
-  },
-  productCard: {
-    border: "1px solid #ddd",
-    borderRadius: 10,
-    padding: 16,
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    background: "#fafafa",
-    textAlign: "left",
-  },
-  input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 12,
-    borderRadius: 8,
-    border: "1px solid #ccc",
-  },
-  cartList: {
-    flex: 1,
-    overflowY: "auto",
-    marginTop: 10,
-  },
-  cartItem: {
-    borderBottom: "1px solid #eee",
-    padding: "12px 0",
-  },
-  cartActions: {
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-    marginTop: 8,
-    flexWrap: "wrap",
-  },
-  notesInput: {
-    width: "100%",
-    marginTop: 8,
-    padding: 8,
-    borderRadius: 8,
-    border: "1px solid #ccc",
-  },
-  footer: {
-    borderTop: "1px solid #eee",
-    paddingTop: 16,
-    marginTop: 16,
-  },
-  finalizeButton: {
-    width: "100%",
-    padding: 14,
-    border: "none",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: "bold",
-    background: "#111827",
-    color: "#fff",
-  },
-};

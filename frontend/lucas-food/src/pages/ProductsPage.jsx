@@ -74,31 +74,39 @@ export default function ProductsPage() {
   }, []);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.headerCard}>
-        <h1 style={{ marginTop: 0 }}>Produtos</h1>
+    <div className="page">
+      <div className="card">
+        <h1 style={{ marginTop: 0, marginBottom: 12, fontSize: 20 }}>Produtos</h1>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+            marginTop: 8,
+          }}
+        >
           <input
             placeholder="Categoria ID"
             type="number"
             value={form.category_id}
             onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-            style={styles.input}
+            className="input"
           />
 
           <input
             placeholder="Nome"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            style={styles.input}
+            className="input"
           />
 
           <input
             placeholder="Descrição"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            style={styles.input}
+            className="input"
           />
 
           <input
@@ -107,35 +115,52 @@ export default function ProductsPage() {
             step="0.01"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
-            style={styles.input}
+            className="input"
           />
 
           <input
             placeholder="URL da imagem"
             value={form.image_url}
             onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-            style={styles.input}
+            className="input"
           />
 
-          <button type="submit" style={styles.primaryButton} disabled={loading}>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? "Salvando..." : "Salvar produto"}
           </button>
         </form>
       </div>
 
-      <div style={styles.list}>
+      <div className="card-list">
         {products.map((product) => (
-          <div key={product.id} style={styles.productCard}>
-            <div>
+          <div
+            key={product.id}
+            className="card"
+            style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
+          >
+            <div style={{ maxWidth: "65%" }}>
               <strong>{product.name}</strong>
-              <p style={styles.description}>{product.description}</p>
-              <p>R$ {Number(product.price).toFixed(2)}</p>
-              <p>Status: {product.active ? "Ativo" : "Inativo"}</p>
+              <p className="card-item-note" style={{ marginTop: 4 }}>
+                {product.description}
+              </p>
+              <p style={{ marginTop: 6, fontSize: 13 }}>
+                R$ {Number(product.price).toFixed(2)}
+              </p>
+              <p style={{ marginTop: 2, fontSize: 12, color: "var(--text-soft)" }}>
+                Status:{" "}
+                <span
+                  className={`badge badge-status ${
+                    product.active ? "badge-status--ready" : "badge-status--canceled"
+                  }`}
+                >
+                  {product.active ? "Ativo" : "Inativo"}
+                </span>
+              </p>
             </div>
 
             <button
               onClick={() => toggleActive(product)}
-              style={styles.secondaryButton}
+              className="btn btn-outline"
             >
               {product.active ? "Desativar" : "Ativar"}
             </button>
@@ -145,64 +170,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-const styles = {
-  page: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  headerCard: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 20,
-  },
-  form: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: 12,
-    marginTop: 16,
-  },
-  input: {
-    padding: 12,
-    borderRadius: 10,
-    border: "1px solid #d4d4d8",
-  },
-  primaryButton: {
-    border: "none",
-    borderRadius: 10,
-    padding: 12,
-    cursor: "pointer",
-    background: "#111827",
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  secondaryButton: {
-    border: "none",
-    borderRadius: 10,
-    padding: "10px 14px",
-    cursor: "pointer",
-    background: "#111827",
-    color: "#fff",
-    fontWeight: "bold",
-    height: "fit-content",
-  },
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  productCard: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    alignItems: "center",
-  },
-  description: {
-    margin: "6px 0",
-    opacity: 0.75,
-  },
-};
