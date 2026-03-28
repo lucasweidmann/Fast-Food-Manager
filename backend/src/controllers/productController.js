@@ -18,7 +18,6 @@ function notFound(res, message = "Registro não encontrado") {
 
 function internalError(res, error) {
   console.error(error);
-
   return res.status(500).json({
     error: error?.message || "Erro interno do servidor",
   });
@@ -26,11 +25,7 @@ function internalError(res, error) {
 
 function getToken(req) {
   const authHeader = req.headers.authorization || "";
-
-  if (!authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
+  if (!authHeader.startsWith("Bearer ")) return null;
   return authHeader.slice(7).trim();
 }
 
@@ -38,45 +33,36 @@ async function authenticateRequest(req) {
   const token = getToken(req);
 
   if (!token) {
-    return {
-      error: { type: "unauthorized", message: "Token não enviado" },
-    };
+    return { error: { message: "Token não enviado" } };
   }
 
   const { data, error } = await supabaseAuth.auth.getUser(token);
 
   if (error || !data?.user) {
-    return {
-      error: { type: "unauthorized", message: "Token inválido" },
-    };
+    return { error: { message: "Token inválido" } };
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role,name")
     .eq("id", data.user.id)
     .maybeSingle();
 
-  if (profileError) {
-    return {
-      error: {
-        type: "unauthorized",
-        message: "Falha ao carregar perfil do usuário",
-      },
-    };
-  }
-
   return {
     user: {
       id: data.user.id,
       email: data.user.email || "",
-      role: profile?.role || "customer",
-      name: profile?.name || data.user.user_metadata?.name || "",
+      role: profile?.role ?? "customer",
+      name: profile?.name || "",
     },
   };
 }
 
-function sanitizeProductPayload(body) {
+function allow(user) {
+  return ["admin", "staff"].includes(user.role);
+}
+
+function sanitize(body) {
   return {
     category_id:
       body.category_id === null || body.category_id === undefined
@@ -90,22 +76,9 @@ function sanitizeProductPayload(body) {
   };
 }
 
-function validateProductPayload(payload) {
-  if (!payload.name) {
-    return "Nome do produto é obrigatório";
-  }
-
-  if (!Number.isFinite(payload.price) || payload.price < 0) {
-    return "Preço inválido";
-  }
-
-  if (
-    payload.category_id !== null &&
-    (!Number.isInteger(payload.category_id) || payload.category_id <= 0)
-  ) {
-    return "Categoria inválida";
-  }
-
+function validate(p) {
+  if (!p.name) return "Nome obrigatório";
+  if (!Number.isFinite(p.price) || p.price < 0) return "Preço inválido";
   return null;
 }
 
@@ -114,64 +87,39 @@ export async function getProducts(req, res) {
     let canSeeInactive = false;
 
     const token = getToken(req);
-
     if (token) {
       const auth = await authenticateRequest(req);
-
       if (!auth.error) {
-        canSeeInactive = ["admin", "staff"].includes(auth.user.role);
+        canSeeInactive = allow(auth.user);
       }
     }
 
     const showAll = req.query.all === "true";
 
-    let query = supabase
-      .from("products")
-      .select("*")
-      .order("id", { ascending: true });
+    let query = supabase.from("products").select("*").order("id");
 
     if (!(showAll && canSeeInactive)) {
       query = query.eq("active", true);
     }
 
-    if (req.query.category_id) {
-      query = query.eq("category_id", Number(req.query.category_id));
-    }
-
-    if (req.query.search) {
-      query = query.ilike("name", `%${String(req.query.search).trim()}%`);
-    }
-
     const { data, error } = await query;
 
-    if (error) {
-      return internalError(res, error);
-    }
-
+    if (error) return internalError(res, error);
     return res.json(data);
-  } catch (error) {
-    return internalError(res, error);
+  } catch (e) {
+    return internalError(res, e);
   }
 }
 
 export async function createProduct(req, res) {
   try {
     const auth = await authenticateRequest(req);
+    if (auth.error) return unauthorized(res, auth.error.message);
+    if (!allow(auth.user)) return forbidden(res);
 
-    if (auth.error) {
-      return unauthorized(res, auth.error.message);
-    }
-
-    if (auth.user.role !== "admin") {
-      return forbidden(res, "Você não tem permissão para acessar esta rota");
-    }
-
-    const payload = sanitizeProductPayload(req.body);
-    const validationError = validateProductPayload(payload);
-
-    if (validationError) {
-      return badRequest(res, validationError);
-    }
+    const payload = sanitize(req.body);
+    const err = validate(payload);
+    if (err) return badRequest(res, err);
 
     const { data, error } = await supabase
       .from("products")
@@ -179,35 +127,23 @@ export async function createProduct(req, res) {
       .select()
       .single();
 
-    if (error) {
-      return internalError(res, error);
-    }
-
+    if (error) return internalError(res, error);
     return res.status(201).json(data);
-  } catch (error) {
-    return internalError(res, error);
+  } catch (e) {
+    return internalError(res, e);
   }
 }
 
 export async function updateProduct(req, res) {
   try {
     const auth = await authenticateRequest(req);
-
-    if (auth.error) {
-      return unauthorized(res, auth.error.message);
-    }
-
-    if (auth.user.role !== "admin") {
-      return forbidden(res, "Você não tem permissão para acessar esta rota");
-    }
+    if (auth.error) return unauthorized(res, auth.error.message);
+    if (!allow(auth.user)) return forbidden(res);
 
     const { id } = req.params;
-    const payload = sanitizeProductPayload(req.body);
-    const validationError = validateProductPayload(payload);
-
-    if (validationError) {
-      return badRequest(res, validationError);
-    }
+    const payload = sanitize(req.body);
+    const err = validate(payload);
+    if (err) return badRequest(res, err);
 
     const { data, error } = await supabase
       .from("products")
@@ -216,37 +152,26 @@ export async function updateProduct(req, res) {
       .select()
       .maybeSingle();
 
-    if (error) {
-      return internalError(res, error);
-    }
-
-    if (!data) {
-      return notFound(res, "Produto não encontrado");
-    }
+    if (error) return internalError(res, error);
+    if (!data) return notFound(res);
 
     return res.json(data);
-  } catch (error) {
-    return internalError(res, error);
+  } catch (e) {
+    return internalError(res, e);
   }
 }
 
 export async function toggleProductStatus(req, res) {
   try {
     const auth = await authenticateRequest(req);
-
-    if (auth.error) {
-      return unauthorized(res, auth.error.message);
-    }
-
-    if (auth.user.role !== "admin") {
-      return forbidden(res, "Você não tem permissão para acessar esta rota");
-    }
+    if (auth.error) return unauthorized(res, auth.error.message);
+    if (!allow(auth.user)) return forbidden(res);
 
     const { id } = req.params;
     const { active } = req.body;
 
     if (typeof active !== "boolean") {
-      return badRequest(res, "Campo active deve ser true ou false");
+      return badRequest(res, "active inválido");
     }
 
     const { data, error } = await supabase
@@ -256,16 +181,11 @@ export async function toggleProductStatus(req, res) {
       .select()
       .maybeSingle();
 
-    if (error) {
-      return internalError(res, error);
-    }
-
-    if (!data) {
-      return notFound(res, "Produto não encontrado");
-    }
+    if (error) return internalError(res, error);
+    if (!data) return notFound(res);
 
     return res.json(data);
-  } catch (error) {
-    return internalError(res, error);
+  } catch (e) {
+    return internalError(res, e);
   }
 }

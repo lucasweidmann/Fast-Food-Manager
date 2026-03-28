@@ -1,6 +1,11 @@
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 import ProductsPage from "./pages/ProductsPage";
-import OrdersPage from "./pages/OrdersPage";
 import PDVPage from "./pages/PDVPage";
 import KitchenPage from "./pages/KitchenPage";
 import LoginPage from "./pages/LoginPage";
@@ -34,14 +39,12 @@ function AppLayout() {
             <span>PDV</span>
             <span className="nav-pill">Venda</span>
           </NavLink>
-          <NavLink to="/orders">
-            <span>Meus pedidos</span>
-            <span className="nav-pill">Histórico</span>
-          </NavLink>
+
           <NavLink to="/products">
             <span>Produtos</span>
             <span className="nav-pill">Catálogo</span>
           </NavLink>
+
           <NavLink to="/kitchen">
             <span>Cozinha</span>
             <span className="nav-pill">Kanban</span>
@@ -70,13 +73,12 @@ function AppLayout() {
         </header>
 
         <div className="container">
-        <Routes>
-          <Route path="/pdv" element={<PDVPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/kitchen" element={<KitchenPage />} />
-          <Route path="*" element={<Navigate to="/pdv" replace />} />
-        </Routes>
+          <Routes>
+            <Route path="/pdv" element={<PDVPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/kitchen" element={<KitchenPage />} />
+            <Route path="*" element={<Navigate to="/pdv" replace />} />
+          </Routes>
         </div>
       </main>
     </div>

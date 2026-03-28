@@ -5,7 +5,6 @@ import { useAuth } from "../contexts/AuthContext";
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
-
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -16,58 +15,30 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
     };
-
     if (!payload.email || !payload.password) {
       alert("Preencha email e senha");
       return;
     }
-
     try {
       setLoading(true);
-
       if (mode === "register") {
-        const result = await signUp({
-          name: payload.name,
-          email: payload.email,
-          password: payload.password,
-        });
-
+        const result = await signUp(payload);
         if (result?.session) {
-          alert("Conta criada com sucesso");
           navigate("/pdv");
         } else {
-          alert(
-            "Conta criada. Se a confirmação de email estiver ativa, confirme seu email antes de entrar.",
-          );
           setMode("login");
         }
-
         return;
       }
-
-      await signIn({
-        email: payload.email,
-        password: payload.password,
-      });
-
+      await signIn(payload);
       navigate("/pdv");
     } catch (error) {
-      console.error(error);
-
-      if (error.message?.includes("rate limit")) {
-        alert(
-          "Muitas tentativas de envio de email. Espere um pouco ou desative a confirmação de email no Supabase para testar.",
-        );
-        return;
-      }
-
-      alert(error.message || "Erro de autenticação");
+      alert(error.message || "Erro");
     } finally {
       setLoading(false);
     }
@@ -76,16 +47,20 @@ export default function LoginPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <div className="auth-brand">
+        <div className="auth-brand" style={{ textAlign: "center" }}>
           <div className="auth-logo">
-            <img src="/logo-lf.png" alt="Lucas Food" className="auth-logo-img" />
+            <img
+              src="/logo-lf.png"
+              alt="Lucas Food"
+              className="auth-logo-img"
+            />
           </div>
           <div className="auth-title">
             <h1>Lucas Food</h1>
-            <p>
+            <p style={{ opacity: 0.7 }}>
               {mode === "login"
-                ? "Entre no painel para gerenciar pedidos, cozinha e PDV."
-                : "Crie sua conta para começar a vender com o Lucas Food."}
+                ? "Controle seus pedidos, organize sua cozinha e venda com rapidez."
+                : "Comece agora e gerencie toda sua operação em um só lugar."}
             </p>
           </div>
         </div>
@@ -97,7 +72,6 @@ export default function LoginPage() {
               <input
                 id="name"
                 type="text"
-                placeholder="Como devemos te chamar?"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
@@ -109,7 +83,6 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
-              placeholder="voce@restaurante.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -120,23 +93,29 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
-              placeholder="Mínimo 6 caracteres"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary auth-submit"
-            disabled={loading}
-          >
-            {loading
-              ? "Carregando..."
-              : mode === "login"
-                ? "Entrar no painel"
-                : "Criar conta"}
-          </button>
+          <div style={{ marginTop: "2rem" }}>
+            <button
+              type="submit"
+              className="btn btn-primary auth-submit"
+              disabled={loading}
+              style={{
+                background: "white",
+                color: "#1a1a1a",
+                border: "none",
+              }}
+            >
+              {loading
+                ? "Carregando..."
+                : mode === "login"
+                  ? "Login"
+                  : "Criar conta"}
+            </button>
+          </div>
 
           <button
             type="button"
@@ -144,17 +123,29 @@ export default function LoginPage() {
             onClick={() =>
               setMode((prev) => (prev === "login" ? "register" : "login"))
             }
+            style={{
+              marginTop: "0.5rem",
+              padding: "0",
+              border: "none",
+              background: "transparent",
+              color: "rgba(255,255,255,0.5)",
+              fontWeight: 400,
+              fontSize: "0.82rem",
+              cursor: "pointer",
+              width: "100%",
+              textAlign: "center",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.85)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+            }}
           >
-            {mode === "login"
-              ? "Não tem conta? Cadastre-se"
-              : "Já tem conta? Entrar"}
+            {mode === "login" ? "Criar conta" : "Já tenho conta"}
           </button>
         </form>
-
-        <div className="auth-footer">
-          <span>Dica para testes rápidos:</span>
-          <span>desative a confirmação de email no Supabase.</span>
-        </div>
       </div>
     </div>
   );

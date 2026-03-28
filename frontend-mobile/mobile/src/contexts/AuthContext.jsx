@@ -22,13 +22,20 @@ export function AuthProvider({ children }) {
       email,
       password,
       options: {
-        data: {
-          name: name || "",
-        },
+        data: { name: name || "" },
       },
     });
 
     if (error) throw error;
+
+    if (data.user) {
+      await supabase.from("profiles").insert({
+        id: data.user.id,
+        name: name || "",
+        role: "customer",
+      });
+    }
+
     return data;
   }
 
