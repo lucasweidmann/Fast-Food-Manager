@@ -4,11 +4,9 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState("login");
+  const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
   });
@@ -16,7 +14,6 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     const payload = {
-      name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
     };
@@ -26,15 +23,6 @@ export default function LoginPage() {
     }
     try {
       setLoading(true);
-      if (mode === "register") {
-        const result = await signUp(payload);
-        if (result?.session) {
-          navigate("/pdv");
-        } else {
-          setMode("login");
-        }
-        return;
-      }
       await signIn(payload);
       navigate("/pdv");
     } catch (error) {
@@ -58,26 +46,12 @@ export default function LoginPage() {
           <div className="auth-title">
             <h1>Lucas Food</h1>
             <p style={{ opacity: 0.7 }}>
-              {mode === "login"
-                ? "Controle seus pedidos, organize sua cozinha e venda com rapidez."
-                : "Comece agora e gerencie toda sua operação em um só lugar."}
+              Controle seus pedidos, organize sua cozinha e venda com rapidez.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {mode === "register" && (
-            <div className="auth-field">
-              <label htmlFor="name">Nome</label>
-              <input
-                id="name"
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-          )}
-
           <div className="auth-field">
             <label htmlFor="email">Email</label>
             <input
@@ -109,42 +83,9 @@ export default function LoginPage() {
                 border: "none",
               }}
             >
-              {loading
-                ? "Carregando..."
-                : mode === "login"
-                  ? "Login"
-                  : "Criar conta"}
+              {loading ? "Carregando..." : "Login"}
             </button>
           </div>
-
-          <button
-            type="button"
-            className="auth-toggle"
-            onClick={() =>
-              setMode((prev) => (prev === "login" ? "register" : "login"))
-            }
-            style={{
-              marginTop: "0.5rem",
-              padding: "0",
-              border: "none",
-              background: "transparent",
-              color: "rgba(255,255,255,0.5)",
-              fontWeight: 400,
-              fontSize: "0.82rem",
-              cursor: "pointer",
-              width: "100%",
-              textAlign: "center",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "rgba(255,255,255,0.85)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-            }}
-          >
-            {mode === "login" ? "Criar conta" : "Já tenho conta"}
-          </button>
         </form>
       </div>
     </div>
